@@ -1,0 +1,403 @@
+<template>
+    <template if:true={isLoading}>
+        <lightning-spinner alternative-text="Loading dashboard">
+        </lightning-spinner>
+    </template>
+
+    <template if:true={userData}>
+        <div class="dashboard-container">
+
+            <!-- HEADER -->
+            <header class="top-header">
+                <div class="brand">
+                    <lightning-icon
+                        icon-name="utility:education"
+                        size="medium"
+                        alternative-text="University">
+                    </lightning-icon>
+
+                    <div>
+                        <h2>University Portal</h2>
+                        <p>Learning and Campus Management</p>
+                    </div>
+                </div>
+
+                <div class="profile-wrapper">
+                    <button
+                        class="profile-button"
+                        onclick={toggleProfile}
+                        title="View Profile">
+                        <lightning-icon
+                            icon-name="utility:user"
+                            size="medium"
+                            alternative-text="Profile">
+                        </lightning-icon>
+                    </button>
+
+                    <template if:true={showProfile}>
+                        <div class="profile-dropdown">
+
+                            <div class="profile-heading">
+                                <lightning-icon
+                                    icon-name="utility:user"
+                                    size="large">
+                                </lightning-icon>
+                                <div>
+                                    <h3>{displayName}</h3>
+                                    <p>{userData.userType}</p>
+                                </div>
+                            </div>
+
+                            <div class="profile-details">
+                                <p><strong>Name</strong>
+                                    {displayName}</p>
+
+                                <p><strong>Email</strong>
+                                    {userData.email}</p>
+
+                                <p><strong>Username</strong>
+                                    {userData.username}</p>
+
+                                <template if:true={hasContact}>
+                                    <p><strong>Contact</strong>
+                                        {userData.contactName}</p>
+
+                                    <p><strong>Phone</strong>
+                                        {userData.phone}</p>
+
+                                    <p><strong>University</strong>
+                                        {userData.accountName}</p>
+                                </template>
+
+                                <template if:false={hasContact}>
+                                    <p><strong>Contact</strong>
+                                        Not applicable for internal staff</p>
+                                </template>
+                            </div>
+
+                            <button
+                                class="close-profile"
+                                onclick={toggleProfile}>
+                                Close
+                            </button>
+                        </div>
+                    </template>
+                </div>
+            </header>
+
+            <!-- WELCOME BANNER -->
+            <section class="welcome-banner">
+                <div>
+                    <p class="welcome-label">YOUR UNIVERSITY SPACE</p>
+                    <h1>Welcome, {displayName}!</h1>
+                    <p>Everything you need for your university journey.</p>
+                </div>
+
+                <div class="role-badge">
+                    {userData.userType}
+                </div>
+            </section>
+
+            <!-- STUDENT DASHBOARD -->
+            <template if:true={isStudent}>
+                <section class="dashboard-section">
+                    <h2>Student Dashboard</h2>
+                    <p class="section-description">
+                        Manage your learning activities in one place.
+                    </p>
+
+                    <div class="dashboard-grid">
+
+                        <div class="dashboard-card courses">
+                            <lightning-icon
+                                icon-name="utility:education"
+                                size="large">
+                            </lightning-icon>
+                            <h3>My Courses</h3>
+                            <p>View your enrolled courses and course details.</p>
+                        </div>
+
+                        <div class="dashboard-card assignments">
+                            <lightning-icon
+                                icon-name="utility:assignment"
+                                size="large">
+                            </lightning-icon>
+                            <h3>My Assignments</h3>
+                            <p>Check published assignments and due dates.</p>
+                        </div>
+
+                        <div class="dashboard-card submissions">
+                            <lightning-icon
+                                icon-name="utility:upload"
+                                size="large">
+                            </lightning-icon>
+                            <h3>My Submissions</h3>
+                            <p>Track your submitted assignments and status.</p>
+                        </div>
+
+                        <div class="dashboard-card grades">
+                            <lightning-icon
+                                icon-name="utility:award"
+                                size="large">
+                            </lightning-icon>
+                            <h3>My Grades</h3>
+                            <p>Check marks, results and staff feedback.</p>
+                        </div>
+
+                        <div class="dashboard-card announcements">
+                            <lightning-icon
+                                icon-name="utility:announcement"
+                                size="large">
+                            </lightning-icon>
+                            <h3>Announcements</h3>
+                            <p>Read important university announcements.</p>
+                        </div>
+
+                    </div>
+                </section>
+                
+<!-- MY ENROLLED COURSES -->
+<div class="my-courses-section">
+
+    <div class="courses-heading">
+        <h2>My Enrolled Courses</h2>
+        <p>View your enrolled courses and academic progress.</p>
+    </div>
+
+    <!-- Loading -->
+    <template if:true={isCoursesLoading}>
+        <lightning-spinner
+            alternative-text="Loading courses"
+            size="medium">
+        </lightning-spinner>
+    </template>
+
+    <!-- Course Error -->
+    <template if:true={courseError}>
+        <div class="error-message">
+            Unable to load your courses. Please try again.
+        </div>
+    </template>
+
+    <!-- Course List -->
+    <template if:true={hasCourses}>
+
+        <div class="course-list">
+
+            <template for:each={myCourses} for:item="enrollment">
+
+                <div class="course-item" key={enrollment.Id}>
+
+                    <div class="course-header">
+                        <div>
+                            <h3>{enrollment.Course__r.Name}</h3>
+
+                            <p>
+                                Course Code:
+                                {enrollment.Course__r.Course_Code__c}
+                            </p>
+                        </div>
+
+                        <span class="course-status">
+                            {enrollment.Enrollment_Status__c}
+                        </span>
+                    </div>
+
+                    <div class="course-details">
+
+                        <p>
+                            <strong>Enrollment Date:</strong>
+                            <lightning-formatted-date-time
+                                value={enrollment.Enrollment_Date__c}
+                                year="numeric"
+                                month="short"
+                                day="2-digit">
+                            </lightning-formatted-date-time>
+                        </p>
+
+                        <p>
+                            <strong>Course Status:</strong>
+                            {enrollment.Course__r.Course_Status__c}
+                        </p>
+
+                        <p>
+                            <strong>Start Date:</strong>
+                            <lightning-formatted-date-time
+                                value={enrollment.Course__r.Start_Date__c}
+                                year="numeric"
+                                month="short"
+                                day="2-digit">
+                            </lightning-formatted-date-time>
+                        </p>
+
+                        <p>
+                            <strong>End Date:</strong>
+                            <lightning-formatted-date-time
+                                value={enrollment.Course__r.End_Date__c}
+                                year="numeric"
+                                month="short"
+                                day="2-digit">
+                            </lightning-formatted-date-time>
+                        </p>
+
+                        <template if:true={enrollment.Completion_Date__c}>
+                            <p>
+                                <strong>Completion Date:</strong>
+                                <lightning-formatted-date-time
+                                    value={enrollment.Completion_Date__c}
+                                    year="numeric"
+                                    month="short"
+                                    day="2-digit">
+                                </lightning-formatted-date-time>
+                            </p>
+                        </template>
+
+                        <template if:true={enrollment.Grade__c}>
+                            <p>
+                                <strong>Grade:</strong>
+                                {enrollment.Grade__c}
+                            </p>
+                        </template>
+
+                    </div>
+
+                    <p class="course-description">
+                        {enrollment.Course__r.Description__c}
+                    </p>
+
+                </div>
+
+            </template>
+
+        </div>
+
+    </template>
+
+    <!-- No Courses -->
+    <template if:false={hasCourses}>
+        <template if:false={isCoursesLoading}>
+            <template if:false={courseError}>
+                <div class="empty-courses">
+                    <lightning-icon
+                        icon-name="utility:education"
+                        size="large">
+                    </lightning-icon>
+
+                    <h3>No Courses Enrolled</h3>
+
+                    <p>
+                        You have not enrolled in any courses yet.
+                    </p>
+                </div>
+            </template>
+        </template>
+    </template>
+
+</div>
+            </template>
+
+            <!-- ALUMNI DASHBOARD -->
+            <template if:true={isAlumni}>
+                <section class="dashboard-section">
+                    <h2>Alumni Dashboard</h2>
+                    <p class="section-description">
+                        Stay connected with your university community.
+                    </p>
+
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card events">
+                            <lightning-icon
+                                icon-name="utility:event"
+                                size="large">
+                            </lightning-icon>
+                            <h3>University Events</h3>
+                            <p>Explore upcoming university events.</p>
+                        </div>
+
+                        <div class="dashboard-card submissions">
+                            <lightning-icon
+                                icon-name="utility:groups"
+                                size="large">
+                            </lightning-icon>
+                            <h3>My Registrations</h3>
+                            <p>View your event registrations.</p>
+                        </div>
+
+                        <div class="dashboard-card announcements">
+                            <lightning-icon
+                                icon-name="utility:announcement"
+                                size="large">
+                            </lightning-icon>
+                            <h3>Announcements</h3>
+                            <p>Read alumni announcements.</p>
+                        </div>
+                    </div>
+                </section>
+            </template>
+
+            <!-- STAFF DASHBOARD -->
+            <template if:true={isStaff}>
+                <section class="dashboard-section">
+                    <h2>Staff Dashboard</h2>
+                    <p class="section-description">
+                        Manage academic and university activities.
+                    </p>
+
+                    <div class="dashboard-grid">
+                        <div class="dashboard-card courses">
+                            <lightning-icon
+                                icon-name="utility:education"
+                                size="large">
+                            </lightning-icon>
+                            <h3>Manage Courses</h3>
+                            <p>Create and manage university courses.</p>
+                        </div>
+
+                        <div class="dashboard-card assignments">
+                            <lightning-icon
+                                icon-name="utility:assignment"
+                                size="large">
+                            </lightning-icon>
+                            <h3>Manage Assignments</h3>
+                            <p>Create assignments and set due dates.</p>
+                        </div>
+
+                        <div class="dashboard-card submissions">
+                            <lightning-icon
+                                icon-name="utility:check"
+                                size="large">
+                            </lightning-icon>
+                            <h3>Review Submissions</h3>
+                            <p>Evaluate student work and provide feedback.</p>
+                        </div>
+
+                        <div class="dashboard-card events">
+                            <lightning-icon
+                                icon-name="utility:event"
+                                size="large">
+                            </lightning-icon>
+                            <h3>Manage Events</h3>
+                            <p>Create and manage university events.</p>
+                        </div>
+
+                        <div class="dashboard-card announcements">
+                            <lightning-icon
+                                icon-name="utility:announcement"
+                                size="large">
+                            </lightning-icon>
+                            <h3>Announcements</h3>
+                            <p>Publish important university updates.</p>
+                        </div>
+                    </div>
+                </section>
+            </template>
+
+        </div>
+    </template>
+
+    <template if:true={error}>
+        <div class="error-message">
+            Unable to load your dashboard. Please try again.
+        </div>
+    </template>
+</template>
